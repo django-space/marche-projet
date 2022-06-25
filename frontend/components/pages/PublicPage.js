@@ -4,23 +4,24 @@ import { useEffect, useState } from "react";
 
 import FullScreenLoading from "../loading/FullScreenLoading";
 
+function PublicPage(WrappedComponent, redirectTo = "/") {
+  return function () {
+    const [loading, setLoading] = useState(true);
+    const session = useSession();
+    const router = useRouter();
 
-function PublicPage({ children, redirectTo = "/" }) {
-  const [loading, setLoading] = useState(true);
-  const { data: sessionData, status: sessionStatus } = useSession();
-  const router = useRouter();
+    useEffect(() => {
+      if (session.status === "authenticated") {
+        router.push(redirectTo);
+      } else if (session.status === "unauthenticated") {
+        setLoading(false);
+      }
+    }, [session.status, router, session.data?.user]);
 
-  useEffect(() => {
-    if (sessionStatus === "authenticated") {
-      router.push(redirectTo);
-    } else if (sessionStatus === "unauthenticated") {
-      setLoading(false);
-    }
-  }, [sessionStatus, router, sessionData?.user]);
+    if (loading || session.status == "loading") return <FullScreenLoading />;
 
-  if (loading || sessionStatus == "loading") return <FullScreenLoading />;
-
-  return <>{children}</>;
+    return <WrappedComponent session={session} />;
+  };
 }
 
 export default PublicPage;

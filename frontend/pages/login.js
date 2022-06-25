@@ -1,9 +1,10 @@
 import PublicPage from "../components/pages/PublicPage";
 
-export default function LoginPage() {
+function LoginPage({session}) {
+  console.log(session);
   return (
-    <PublicPage>
-      <div>Login page</div>
-    </PublicPage>
+    <div>Login page</div>
   );
 }
+
+export default PublicPage(LoginPage);
