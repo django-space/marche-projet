@@ -16,6 +16,7 @@ import {
   ReloadOutlined as ReloadIcon,
 } from "@ant-design/icons";
 import { notification, Spin } from "antd";
+import { format } from "date-fns";
 
 import axios from "../../axios.config";
 import AddOSForm from "../forms/AddOSForm";
@@ -25,6 +26,8 @@ function MarcheOSDataGrid({ marche, session }) {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [formAction, setFormAction] = useState("CREATE");
   const [paginationInfo, setPaginationInfo] = useState({
     count: 0,
     next: null,
@@ -58,6 +61,15 @@ function MarcheOSDataGrid({ marche, session }) {
     []
   );
 
+  const EditRecord = useCallback(
+    (row) => () => {
+      setOpen(true);
+      setFormAction("UPDATE");
+      setSelectedRow({...row});
+    },
+    []
+  );
+
   const fetchData = useCallback(async (page = 0) => {
     setLoading(true);
     try {
@@ -84,6 +96,8 @@ function MarcheOSDataGrid({ marche, session }) {
 
   const handleClose = () => {
     setOpen(false);
+    setSelectedRow({type_os: ""});
+    setFormAction("CREATE");
   };
 
   useEffect(() => {
@@ -114,6 +128,9 @@ function MarcheOSDataGrid({ marche, session }) {
         headerName: "Date OS",
         editable: false,
         flex: 3,
+        valueFormatter: (params) => {
+          return format(new Date(params.value), 'dd/MM/yyyy');
+        },
       },
       {
         field: "type_os",
@@ -130,7 +147,7 @@ function MarcheOSDataGrid({ marche, session }) {
             key={params.id}
             icon={<EditIcon />}
             label="Edit"
-            onClick={() => {}}
+            onClick={EditRecord(params.row)}
           />,
           <GridActionsCellItem
             key={params.id}
@@ -179,6 +196,8 @@ function MarcheOSDataGrid({ marche, session }) {
         open={open}
         handleClose={handleClose}
         successCallback={fetchData}
+        passedData={selectedRow}
+        action={formAction}
       />
       <Spin spinning={loading}>
         <Box pt={1} sx={{ height: 300, width: "100%" }}>
@@ -198,7 +217,7 @@ function MarcheOSDataGrid({ marche, session }) {
             onPageChange={getNextPaginatedData}
             components={{
               NoRowsOverlay: CustomNoRowsOverlay.bind(null, {
-                noDataMessage: "Pas de marchés",
+                noDataMessage: "Pas de os",
               }),
               LoadingOverlay: LinearProgress,
             }}

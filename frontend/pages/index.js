@@ -7,12 +7,15 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import LinearProgress from "@mui/material/LinearProgress";
+import IconButton from "@mui/material/IconButton";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import {
   EditFilled as EditIcon,
   DeleteFilled as DeleteIcon,
+  ReloadOutlined as ReloadIcon,
 } from "@ant-design/icons";
 import { notification, Spin } from "antd";
+import { format } from "date-fns";
 
 import axios from "../axios.config";
 import PrivatePage from "../components/pages/PrivatePage";
@@ -107,6 +110,9 @@ function Home({ session }) {
         headerName: "Date de marche",
         editable: false,
         flex: 1,
+        valueFormatter: (params) => {
+          return format(new Date(params.value), "dd/MM/yyyy");
+        },
       },
       {
         field: "montant_marche",
@@ -149,14 +155,26 @@ function Home({ session }) {
         <Typography variant="h4" component="h2" mb={2}>
           Marches
         </Typography>
-        <Button
-          variant="contained"
-          onClick={() => {
-            setOpen(true);
-          }}
-        >
-          Nouveau marché
-        </Button>
+        <Box>
+          <Button
+            sx={{
+              marginRight: 2
+            }}
+            variant="contained"
+            onClick={() => {
+              setOpen(true);
+            }}
+          >
+            Nouveau marché
+          </Button>
+          <IconButton
+            sx={{ zIndex: 20 }}
+            disabled={loading}
+            onClick={fetchData}
+          >
+            <ReloadIcon />
+          </IconButton>
+        </Box>
       </Box>
       <Divider />
       <AddMarcheForm

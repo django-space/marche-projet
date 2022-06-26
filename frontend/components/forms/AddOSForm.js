@@ -40,6 +40,8 @@ const AddOSForm = ({
   handleClose: baseHandleClose,
   successCallback,
   marche,
+  passedData = { type_os: "" },
+  action = "CREATE",
 }) => {
   const fullScreen = useMediaQuery("(min-width:860px)");
   const {
@@ -50,6 +52,9 @@ const AddOSForm = ({
     reset,
   } = useForm({
     resolver: yupResolver(schema),
+    defaultValues: {
+      type_os: "",
+    },
   });
   const { data: sessionData } = useSession();
   const [error, setError] = useState(false);
@@ -58,6 +63,10 @@ const AddOSForm = ({
     baseHandleClose();
     reset();
   };
+
+  useEffect(() => {
+    reset({ name: passedData?.type_os });
+  }, [passedData]);
 
   const onSubmit = async (data) => {
     try {

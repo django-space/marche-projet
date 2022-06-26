@@ -55,7 +55,7 @@ function MarcheDetailPage({ session }) {
       </Box>
       <Divider />
       <Box pt={3} sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Box sx={{ flex: 1 }}>
+        <Box mb={4} sx={{ flex: 1 }}>
           <MarcheInfoCard marche={marche} session={session} />
         </Box>
         {/*<Divider orientation="vertical" flexItem />*/}

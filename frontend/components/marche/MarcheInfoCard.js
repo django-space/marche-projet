@@ -31,6 +31,7 @@ import {
   EditFilled as EditIcon,
   DeleteFilled as DeleteIcon,
 } from "@ant-design/icons";
+import { format } from "date-fns";
 
 const schema = yup
   .object({
@@ -174,7 +175,7 @@ function MarcheInfoCard({ marche: marcheData, session }) {
                     label="Date de marché"
                     variant="standard"
                     fullWidth
-                    value={marche?.date_marche}
+                    value={format(new Date(marche?.date_marche), 'dd/MM/yyyy')}
                     InputProps={{
                       readOnly: true,
                     }}

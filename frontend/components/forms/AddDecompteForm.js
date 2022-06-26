@@ -34,6 +34,8 @@ const AddDecompteForm = ({
   handleClose: baseHandleClose,
   successCallback,
   marche,
+  passedData = { montant_decmopte: "" },
+  action = "CREATE",
 }) => {
   const fullScreen = useMediaQuery("(min-width:860px)");
   const {
@@ -44,39 +46,71 @@ const AddDecompteForm = ({
     reset,
   } = useForm({
     resolver: yupResolver(schema),
+    defaultValues: {
+      montant_decmopte: "",
+    },
   });
   const { data: sessionData } = useSession();
   const [error, setError] = useState(false);
 
   const handleClose = () => {
     baseHandleClose();
+    setError(false);
     reset();
   };
 
   const onSubmit = async (data) => {
-    // try {
-      const response = await axios.post(
-        "api/v1/decomptes/",
-        {
-          n_marche: marche.n_marche,
-          montant_decmopte: data.montant_decmopte,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${sessionData.accessToken}`,
+    if (action === "UPDATE") {
+      try {
+        const response = await axios.patch(
+          `api/v1/decomptes/${passedData.id}/`,
+          {
+            montant_decmopte: data.montant_decmopte,
           },
-        }
-      );
-      notification.success({
-        message: `Le marché "${response.data.n_marche}" a été créé avec succès`,
-        placement: "bottomRight",
-      });
-      successCallback();
-      handleClose();
-    // } catch {
-      // setError(true);
-    // }
+          {
+            headers: {
+              Authorization: `Bearer ${sessionData.accessToken}`,
+            },
+          }
+        );
+        notification.success({
+          message: `Le marché "${response.data.n_marche}" a été créé avec succès`,
+          placement: "bottomRight",
+        });
+        successCallback();
+        handleClose();
+      } catch {
+        setError(true);
+      }
+    } else {
+      try {
+        const response = await axios.post(
+          "api/v1/decomptes/",
+          {
+            n_marche: marche.n_marche,
+            montant_decmopte: data.montant_decmopte,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${sessionData.accessToken}`,
+            },
+          }
+        );
+        notification.success({
+          message: `Le marché "${response.data.n_marche}" a été créé avec succès`,
+          placement: "bottomRight",
+        });
+        successCallback();
+        handleClose();
+      } catch {
+        setError(true);
+      }
+    }
   };
+
+  useEffect(() => {
+    reset({ montant_decmopte: passedData?.montant_decmopte });
+  }, [passedData]);
 
   return (
     <Dialog

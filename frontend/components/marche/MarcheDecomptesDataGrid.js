@@ -16,6 +16,7 @@ import {
   ReloadOutlined as ReloadIcon,
 } from "@ant-design/icons";
 import { notification, Spin } from "antd";
+import { format } from "date-fns";
 
 import axios from "../../axios.config";
 import AddDecompteForm from "../forms/AddDecompteForm";
@@ -25,6 +26,8 @@ function MarcheDecomptesDataGrid({ marche, session }) {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [formAction, setFormAction] = useState("CREATE");
+  const [selectedRow, setSelectedRow] = useState(null);
   const [paginationInfo, setPaginationInfo] = useState({
     count: 0,
     next: null,
@@ -87,7 +90,18 @@ function MarcheDecomptesDataGrid({ marche, session }) {
 
   const handleClose = () => {
     setOpen(false);
+    setSelectedRow({ montant_decmopte: "" });
+    setFormAction("CREATE");
   };
+
+  const EditRecord = useCallback(
+    (row) => () => {
+      setOpen(true);
+      setFormAction("UPDATE");
+      setSelectedRow({ ...row });
+    },
+    []
+  );
 
   useEffect(() => {
     fetchData().catch(console.error);
@@ -117,6 +131,9 @@ function MarcheDecomptesDataGrid({ marche, session }) {
         headerName: "Date de decompte",
         editable: false,
         flex: 3,
+        valueFormatter: (params) => {
+          return format(new Date(params.value), "dd/MM/yyyy");
+        },
       },
       {
         field: "montant_decmopte",
@@ -133,7 +150,7 @@ function MarcheDecomptesDataGrid({ marche, session }) {
             key={params.id}
             icon={<EditIcon />}
             label="Edit"
-            onClick={() => router.push(`/marches/${params.id}`)}
+            onClick={EditRecord(params.row)}
           />,
           <GridActionsCellItem
             key={params.id}
@@ -182,6 +199,8 @@ function MarcheDecomptesDataGrid({ marche, session }) {
         handleClose={handleClose}
         successCallback={fetchData}
         marche={marche}
+        passedData={selectedRow}
+        action={formAction}
       />
       <Spin spinning={loading}>
         <Box pt={1} sx={{ height: 300, width: "100%" }}>
@@ -201,7 +220,7 @@ function MarcheDecomptesDataGrid({ marche, session }) {
             onPageChange={getNextPaginatedData}
             components={{
               NoRowsOverlay: CustomNoRowsOverlay.bind(null, {
-                noDataMessage: "Pas de marchés",
+                noDataMessage: "Pas de decomptes",
               }),
               LoadingOverlay: LinearProgress,
             }}
