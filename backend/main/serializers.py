@@ -29,12 +29,40 @@ class CreateMarcheSerializer(serializers.ModelSerializer):
 
 
 class OperationServiceSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        num_os = 1
+        try:
+            num_os = validated_data['marche'].operation_services.first().n_os + 1
+        except:
+            pass
+        new_os = OperationService.objects.create(
+            n_marche=validated_data['marche'],
+            n_os=num_os,
+            type_os=validated_data['type_os'],
+        )
+        return new_os
+
     class Meta:
         model = OperationService
         fields = '__all__'
+        read_only_fields = ('n_os',)
 
 
 class DecompteSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        num_decompte = 1
+        try:
+            num_decompte = validated_data['marche'].decomptes.first().n_decompte + 1
+        except:
+            pass
+        new_decompte = Decompte.objects.create(
+            n_marche=validated_data['marche'],
+            n_decompte=num_decompte,
+            montant_decmopte=validated_data['montant_decmopte'],
+        )
+        return new_decompte
+
     class Meta:
         model = Decompte
         fields = '__all__'
+        read_only_fields = ('n_decompte',)

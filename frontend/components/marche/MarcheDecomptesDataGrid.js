@@ -7,21 +7,21 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import LinearProgress from "@mui/material/LinearProgress";
+import IconButton from "@mui/material/IconButton";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import {
   EditFilled as EditIcon,
   DeleteFilled as DeleteIcon,
+  PlusOutlined as PlusIcon,
+  ReloadOutlined as ReloadIcon,
 } from "@ant-design/icons";
 import { notification, Spin } from "antd";
 
-import axios from "../axios.config";
-import PrivatePage from "../components/pages/PrivatePage";
-import AddMarcheForm from "../components/forms/AddMarcheForm";
-import CustomNoRowsOverlay from "../components/CustomNoRowsOverlay";
-import styles from "../styles/Home.module.css";
+import axios from "../../axios.config";
+import AddDecompteForm from "../forms/AddDecompteForm";
+import CustomNoRowsOverlay from "../CustomNoRowsOverlay";
 
-function Home({ session }) {
-  const router = useRouter();
+function MarcheDecomptesDataGrid({ marche, session }) {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -33,21 +33,25 @@ function Home({ session }) {
   const [open, setOpen] = useState(false);
 
   const deleteRecord = useCallback(
-    (id) => async () => {
+    (params) => async () => {
       setLoading(true);
       try {
-        const response = await axios.delete(`api/v1/marches/${id}/`, null, {
-          headers: {
-            Authorization: `Bearer ${session.data.accessToken}`,
-          },
-        });
+        const response = await axios.delete(
+          `api/v1/decomptes/${params.id}/`,
+          null,
+          {
+            headers: {
+              Authorization: `Bearer ${session.data.accessToken}`,
+            },
+          }
+        );
         notification.success({
-          message: `Le marché "${id}" a été supprimé avec succès`,
+          message: `Le decompte "${params.row.n_decompte}" a été supprimé avec succès`,
           placement: "bottomRight",
         });
       } catch {
         notification.error({
-          message: `Le marché n'a pas pu être supprimé, veuillez réessayer`,
+          message: `Le decompte n'a pas pu être supprimé, veuillez réessayer`,
           placement: "bottomRight",
         });
       } finally {
@@ -58,28 +62,28 @@ function Home({ session }) {
     []
   );
 
-  const fetchData = useCallback(
-    async (page = 0) => {
-      setLoading(true);
-      try {
-        const response = await axios.get(`api/v1/marches/?page=${page + 1}`, {
+  const fetchData = useCallback(async (page = 0) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `api/v1/marches/${marche.n_marche}/decomptes/?page=${page + 1}`,
+        {
           headers: {
             Authorization: `Bearer ${session.data.accessToken}`,
           },
-        });
-        setPaginationInfo({
-          count: response.data.count,
-          next: response.data.next,
-          previous: response.data.previous,
-        });
-        setRows(response.data.results);
-        setLoading(false);
-      } catch {
-        setLoading(false);
-      }
-    },
-    [session]
-  );
+        }
+      );
+      setPaginationInfo({
+        count: response.data.count,
+        next: response.data.next,
+        previous: response.data.previous,
+      });
+      setRows(response.data.results);
+      setLoading(false);
+    } catch {
+      setLoading(false);
+    }
+  }, []);
 
   const handleClose = () => {
     setOpen(false);
@@ -97,20 +101,26 @@ function Home({ session }) {
   const columns = useMemo(
     () => [
       {
-        field: "n_marche",
-        headerName: "Nmarche",
+        field: "id",
+        headerName: "ID",
         editable: false,
         flex: 1,
       },
       {
-        field: "date_marche",
-        headerName: "Date de marche",
+        field: "n_decompte",
+        headerName: "#Compte",
         editable: false,
         flex: 1,
       },
       {
-        field: "montant_marche",
-        headerName: "Montant de marche",
+        field: "date_decompte",
+        headerName: "Date de decompte",
+        editable: false,
+        flex: 3,
+      },
+      {
+        field: "montant_decmopte",
+        headerName: "Montant de decompte",
         editable: false,
         flex: 1,
       },
@@ -129,7 +139,7 @@ function Home({ session }) {
             key={params.id}
             icon={<DeleteIcon />}
             label="Delete"
-            onClick={deleteRecord(params.id)}
+            onClick={deleteRecord(params)}
           />,
         ],
       },
@@ -138,7 +148,7 @@ function Home({ session }) {
   );
 
   return (
-    <Container sx={{ paddingTop: 6 }}>
+    <Container>
       <Box
         sx={{
           display: "flex",
@@ -146,29 +156,37 @@ function Home({ session }) {
           alignItems: "center",
         }}
       >
-        <Typography variant="h4" component="h2" mb={2}>
-          Marches
+        <Typography variant="h5" component="h2" mb={2}>
+          Decomptes
         </Typography>
-        <Button
-          variant="contained"
-          onClick={() => {
-            setOpen(true);
-          }}
-        >
-          Nouveau marché
-        </Button>
+        <Box>
+          <IconButton
+            sx={{ zIndex: 20 }}
+            disabled={loading}
+            onClick={fetchData}
+          >
+            <ReloadIcon />
+          </IconButton>
+          <IconButton
+            sx={{ zIndex: 20 }}
+            disabled={loading}
+            onClick={() => setOpen(true)}
+          >
+            <PlusIcon />
+          </IconButton>
+        </Box>
       </Box>
-      <Divider />
-      <AddMarcheForm
+      {/*<Divider />*/}
+      <AddDecompteForm
         open={open}
         handleClose={handleClose}
         successCallback={fetchData}
+        marche={marche}
       />
       <Spin spinning={loading}>
-        <Box pt={3} sx={{ height: 600, width: "100%" }}>
+        <Box pt={1} sx={{ height: 300, width: "100%" }}>
           <DataGrid
             rows={rows}
-            getRowId={(row) => row.n_marche}
             paginationMode="server"
             disableColumnFilter
             rowCount={paginationInfo.count}
@@ -187,6 +205,13 @@ function Home({ session }) {
               }),
               LoadingOverlay: LinearProgress,
             }}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {
+                  id: false,
+                },
+              },
+            }}
           />
         </Box>
       </Spin>
@@ -194,4 +219,4 @@ function Home({ session }) {
   );
 }
 
-export default PrivatePage(Home, "/api/auth/signin");
+export default MarcheDecomptesDataGrid;
