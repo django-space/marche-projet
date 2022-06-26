@@ -1,10 +1,194 @@
+import { useState, useEffect, useMemo, useCallback } from "react";
+
+import Container from "@mui/material/Container";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import LinearProgress from "@mui/material/LinearProgress";
+import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
+import {
+  EditFilled as EditIcon,
+  DeleteFilled as DeleteIcon,
+} from "@ant-design/icons";
+import { notification } from "antd";
+
+import axios from "../axios.config";
 import PrivatePage from "../components/pages/PrivatePage";
+import AddMarcheForm from "../components/forms/AddMarcheForm";
+import CustomNoRowsOverlay from "../components/CustomNoRowsOverlay";
 import styles from "../styles/Home.module.css";
 
 function Home({ session }) {
-  console.log(session);
+  const [loading, setLoading] = useState(true);
+  const [rows, setRows] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [paginationInfo, setPaginationInfo] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+  });
+  const [open, setOpen] = useState(false);
 
-  return <div>This page is private</div>;
+  const deleteRecord = useCallback(
+    (id) => async () => {
+      setLoading(true);
+      try {
+        const response = await axios.delete(`api/v1/marches/${id}/`, null, {
+          headers: {
+            Authorization: `Bearer ${session.data.accessToken}`,
+          },
+        });
+        notification.success({
+          message: `Le marché "${id}" a été supprimé avec succès`,
+          placement: "bottomRight",
+        });
+      } catch {
+        notification.error({
+          message: `Le marché n'a pas pu être supprimé, veuillez réessayer`,
+          placement: "bottomRight",
+        });
+      } finally {
+        setLoading(false);
+        fetchData(currentPage);
+      }
+    },
+    []
+  );
+
+  const fetchData = useCallback(
+    async (page = 0) => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`api/v1/marches/?page=${page + 1}`, {
+          headers: {
+            Authorization: `Bearer ${session.data.accessToken}`,
+          },
+        });
+        setPaginationInfo({
+          count: response.data.count,
+          next: response.data.next,
+          previous: response.data.previous,
+        });
+        setRows(response.data.results);
+        setLoading(false);
+      } catch {
+        setLoading(false);
+      }
+    },
+    [session]
+  );
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  useEffect(() => {
+    fetchData().catch(console.error);
+  }, []);
+
+  const getNextPaginatedData = async (page) => {
+    setCurrentPage(page);
+    await fetchData(page);
+  };
+
+  const columns = useMemo(
+    () => [
+      {
+        field: "n_marche",
+        headerName: "Nmarche",
+        editable: false,
+        flex: 1,
+      },
+      {
+        field: "date_marche",
+        headerName: "Date de marche",
+        editable: false,
+        flex: 1,
+      },
+      {
+        field: "montant_marche",
+        headerName: "Montant de marche",
+        editable: false,
+        flex: 1,
+      },
+      {
+        field: "actions",
+        type: "actions",
+        width: 80,
+        getActions: (params) => [
+          <GridActionsCellItem
+            key={params.id}
+            icon={<EditIcon />}
+            label="Edit"
+            onClick={deleteRecord(params.id)}
+          />,
+          <GridActionsCellItem
+            key={params.id}
+            icon={<DeleteIcon />}
+            label="Delete"
+            onClick={deleteRecord(params.id)}
+          />,
+        ],
+      },
+    ],
+    [deleteRecord]
+  );
+
+  return (
+    <Container sx={{ paddingTop: 6 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="h4" component="h2" mb={2}>
+          Marches
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={() => {
+            setOpen(true);
+          }}
+        >
+          Nouveau marché
+        </Button>
+      </Box>
+      <Divider />
+      <AddMarcheForm
+        open={open}
+        handleClose={handleClose}
+        successCallback={fetchData}
+      />
+      <Box pt={3} sx={{ height: 600, width: "100%" }}>
+        <DataGrid
+          rows={rows}
+          getRowId={(row) => row.n_marche}
+          paginationMode="server"
+          disableColumnFilter
+          rowCount={paginationInfo.count}
+          disableColumnMenu={false}
+          disableColumnSelector
+          loading={loading}
+          columns={columns}
+          pageSize={10}
+          rowsPerPageOptions={[10]}
+          pagination
+          checkboxSelection={false}
+          disableSelectionOnClick
+          onPageChange={getNextPaginatedData}
+          components={{
+            NoRowsOverlay: CustomNoRowsOverlay.bind(null, {
+              noDataMessage: "Pas de marchés",
+            }),
+            LoadingOverlay: LinearProgress,
+          }}
+        />
+      </Box>
+    </Container>
+  );
 }
 
 export default PrivatePage(Home, "/api/auth/signin");
