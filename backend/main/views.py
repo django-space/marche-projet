@@ -9,10 +9,7 @@ from .models import (
     Decompte
 )
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.generics import (
-    CreateAPIView, RetrieveUpdateAPIView, UpdateAPIView,
-    ListCreateAPIView, RetrieveAPIView, ListAPIView, GenericAPIView
-)
+from rest_framework.permissions import IsAuthenticated
 from .serializers import (
     MarcheSerializer, CreateMarcheSerializer,
     OperationServiceSerializer, 
@@ -22,7 +19,7 @@ from .serializers import (
 
 class MarcheViewSet(viewsets.ModelViewSet, PageNumberPagination):
     queryset = Marche.objects.all()
-    # serializer_class = MarcheSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -65,6 +62,7 @@ class MarcheViewSet(viewsets.ModelViewSet, PageNumberPagination):
 class OperationServiceViewSet(viewsets.ModelViewSet):
     queryset = OperationService.objects.all()
     serializer_class = OperationServiceSerializer
+    permission_classes = (IsAuthenticated,)
 
     def create(self, request):
         post_data = self.get_serializer_class()(data=request.data)
@@ -83,6 +81,7 @@ class OperationServiceViewSet(viewsets.ModelViewSet):
 class DecompteViewSet(viewsets.ModelViewSet):
     queryset = Decompte.objects.all()
     serializer_class = DecompteSerializer
+    permission_classes = (IsAuthenticated,)
 
     def create(self, request):
         post_data = self.get_serializer_class()(data=request.data)

@@ -39,7 +39,7 @@ function Home({ session }) {
     (id) => async () => {
       setLoading(true);
       try {
-        const response = await axios.delete(`api/v1/marches/${id}/`, null, {
+        const response = await axios.delete(`api/v1/marches/${id}/`, {
           headers: {
             Authorization: `Bearer ${session.data.accessToken}`,
           },
@@ -63,6 +63,7 @@ function Home({ session }) {
 
   const fetchData = useCallback(
     async (page = 0) => {
+      console.log(page)
       setLoading(true);
       try {
         const response = await axios.get(`api/v1/marches/?page=${page + 1}`, {
@@ -170,7 +171,7 @@ function Home({ session }) {
           <IconButton
             sx={{ zIndex: 20 }}
             disabled={loading}
-            onClick={fetchData}
+            onClick={() => fetchData()}
           >
             <ReloadIcon />
           </IconButton>
@@ -186,6 +187,7 @@ function Home({ session }) {
         <Box pt={3} sx={{ height: 600, width: "100%" }}>
           <DataGrid
             rows={rows}
+            autoHeight
             getRowId={(row) => row.n_marche}
             paginationMode="server"
             disableColumnFilter

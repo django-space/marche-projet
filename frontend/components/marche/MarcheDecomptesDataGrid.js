@@ -41,7 +41,6 @@ function MarcheDecomptesDataGrid({ marche, session }) {
       try {
         const response = await axios.delete(
           `api/v1/decomptes/${params.id}/`,
-          null,
           {
             headers: {
               Authorization: `Bearer ${session.data.accessToken}`,
@@ -180,7 +179,7 @@ function MarcheDecomptesDataGrid({ marche, session }) {
           <IconButton
             sx={{ zIndex: 20 }}
             disabled={loading}
-            onClick={fetchData}
+            onClick={() => fetchData()}
           >
             <ReloadIcon />
           </IconButton>

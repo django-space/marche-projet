@@ -39,7 +39,7 @@ function MarcheOSDataGrid({ marche, session }) {
     (params) => async () => {
       setLoading(true);
       try {
-        const response = await axios.delete(`api/v1/os/${params.id}`, null, {
+        const response = await axios.delete(`api/v1/os/${params.id}`, {
           headers: {
             Authorization: `Bearer ${session.data.accessToken}`,
           },
@@ -65,12 +65,13 @@ function MarcheOSDataGrid({ marche, session }) {
     (row) => () => {
       setOpen(true);
       setFormAction("UPDATE");
-      setSelectedRow({...row});
+      setSelectedRow({ ...row });
     },
     []
   );
 
   const fetchData = useCallback(async (page = 0) => {
+    console.log(page);
     setLoading(true);
     try {
       const response = await axios.get(
@@ -92,11 +93,11 @@ function MarcheOSDataGrid({ marche, session }) {
     } catch {
       setLoading(false);
     }
-  }, []);
+  }, [session]);
 
   const handleClose = () => {
     setOpen(false);
-    setSelectedRow({type_os: ""});
+    setSelectedRow({ type_os: "" });
     setFormAction("CREATE");
   };
 
@@ -129,7 +130,7 @@ function MarcheOSDataGrid({ marche, session }) {
         editable: false,
         flex: 3,
         valueFormatter: (params) => {
-          return format(new Date(params.value), 'dd/MM/yyyy');
+          return format(new Date(params.value), "dd/MM/yyyy");
         },
       },
       {
@@ -177,7 +178,7 @@ function MarcheOSDataGrid({ marche, session }) {
           <IconButton
             sx={{ zIndex: 20 }}
             disabled={loading}
-            onClick={fetchData}
+            onClick={() => fetchData()}
           >
             <ReloadIcon />
           </IconButton>
