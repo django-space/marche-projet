@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.generics import GenericAPIView
 from .models import (
     Marche,
     OperationService,
@@ -13,8 +14,12 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import (
     MarcheSerializer, CreateMarcheSerializer,
     OperationServiceSerializer, 
-    DecompteSerializer,
+    DecompteSerializer, FormulaSerializer,
+    FormulaVaiableSerializer,
 )
+
+
+formula_variables = {'variables': ['A', 'B', 'C', 'D', 'E', 'F']}
 
 
 class MarcheViewSet(viewsets.ModelViewSet, PageNumberPagination):
@@ -95,3 +100,31 @@ class DecompteViewSet(viewsets.ModelViewSet):
             return Response(ser_new_decompte.data, status=status.HTTP_201_CREATED)
         except:
             return Response({'detail': "marche deosn't exist"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class FormulaAPIView(viewsets.GenericViewSet):
+    serializer_class = FormulaSerializer
+
+    def create(self, request):
+        post_data = self.get_serializer_class()(data=request.data)
+        if not post_data.is_valid():
+            return Response(post_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            code = compile(post_data.validated_data['formula'], '<string>', 'eval')
+            variables = code.co_names
+            non_supported_variables = list(filter(lambda x: x not in formula_variables['variables'], variables))
+            if len(non_supported_variables) > 0:
+                return Response({"message": f"formula included these non-supported variables: {non_supported_variables}"})
+            dict_variables = {v:k for k, v in enumerate(variables)}
+            eval_formula = eval(code, {"__builtins__": {}, **dict_variables})
+            ser_res_data = self.get_serializer_class()({"formula": post_data.validated_data['formula'], "is_valid": True})
+            return Response(ser_res_data.data)
+        except:
+            ser_res_data = self.get_serializer_class()({"formula": post_data.validated_data['formula'], "is_valid": False})
+            return Response(ser_res_data.data, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], serializer_class=FormulaVaiableSerializer, pagination_class=None)
+    def get_variables(self, request):
+        ser_res_data = self.get_serializer_class()(formula_variables)
+        return Response(ser_res_data.data)

@@ -38,6 +38,7 @@ router = DefaultRouter()
 router.register(r'api/v1/marches', main_views.MarcheViewSet, basename='marche')
 router.register(r'api/v1/decomptes', main_views.DecompteViewSet, basename='decompte')
 router.register(r'api/v1/os', main_views.OperationServiceViewSet, basename='operation-services')
+router.register(r'api/v1/formula', main_views.FormulaAPIView, basename='formula')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

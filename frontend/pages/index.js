@@ -184,7 +184,7 @@ function Home({ session }) {
         successCallback={fetchData}
       />
       <Spin spinning={loading}>
-        <Box pt={3} sx={{ height: 600, width: "100%" }}>
+        <Box pt={3} sx={{ width: "100%" }}>
           <DataGrid
             rows={rows}
             autoHeight

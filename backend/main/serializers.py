@@ -66,3 +66,12 @@ class DecompteSerializer(serializers.ModelSerializer):
         model = Decompte
         fields = '__all__'
         read_only_fields = ('n_decompte',)
+
+
+class FormulaSerializer(serializers.Serializer):
+    formula = serializers.CharField(required=True)
+    is_valid = serializers.BooleanField(read_only=True)
+
+
+class FormulaVaiableSerializer(serializers.Serializer):
+    variables = serializers.ListField(child=serializers.CharField())
