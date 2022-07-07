@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
@@ -63,7 +64,7 @@ function Home({ session }) {
 
   const fetchData = useCallback(
     async (page = 0) => {
-      console.log(page)
+      console.log(page);
       setLoading(true);
       try {
         const response = await axios.get(`api/v1/marches/?page=${page + 1}`, {
@@ -157,9 +158,12 @@ function Home({ session }) {
           Marches
         </Typography>
         <Box>
+          <Link href="/formula" passHref>
+            <Button sx={{ marginRight: 2 }}>Créer une formule</Button>
+          </Link>
           <Button
             sx={{
-              marginRight: 2
+              marginRight: 2,
             }}
             variant="contained"
             onClick={() => {

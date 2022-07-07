@@ -12,7 +12,7 @@ import axios from "../axios.config";
 import styles from "../styles/Formula.module.css";
 import PrivatePage from "../components/pages/PrivatePage";
 
-function FormulaPage() {
+function FormulaPage({ session }) {
   const [formula, setFormula] = useState("");
   const [loadingVariables, setLoadingVariables] = useState(true);
   const [variables, setVariables] = useState([]);
@@ -23,6 +23,34 @@ function FormulaPage() {
 
   const handleTextAreaChange = (event) => {
     setFormula(event.target.value);
+  };
+
+  const validateFormula = async () => {
+    if (!(formula.length <= 0)) {
+      // if the input is not empty
+      try {
+        const response = await axios.post(
+          "api/v1/formula/",
+          {
+            formula: formula,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${session.data.accessToken}`,
+            },
+          }
+        );
+        notification.success({
+          message: `formula is valid`,
+          placement: "bottomRight",
+        });
+      } catch {
+        notification.error({
+          message: `formula is not valid`,
+          placement: "bottomRight",
+        });
+      }
+    }
   };
 
   useEffect(() => {
@@ -56,7 +84,7 @@ function FormulaPage() {
               marginRight: 2,
             }}
             variant="contained"
-            onClick={() => {}}
+            onClick={validateFormula}
           >
             Enregistrer la formule
           </Button>
@@ -81,6 +109,7 @@ function FormulaPage() {
             {/* left box: variables */}
             {variables.map((v) => (
               <Box
+                key={v}
                 className={styles.variable_container}
                 onDoubleClick={insertVaiable.bind(null, v)}
               >

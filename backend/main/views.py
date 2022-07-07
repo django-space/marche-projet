@@ -115,7 +115,8 @@ class FormulaAPIView(viewsets.GenericViewSet):
             variables = code.co_names
             non_supported_variables = list(filter(lambda x: x not in formula_variables['variables'], variables))
             if len(non_supported_variables) > 0:
-                return Response({"message": f"formula included these non-supported variables: {non_supported_variables}"})
+                res_data = {"message": f"formula included these non-supported variables: {non_supported_variables}"}
+                return Response(res_data, status=status.HTTP_400_BAD_REQUEST)
             dict_variables = {v:k for k, v in enumerate(variables)}
             eval_formula = eval(code, {"__builtins__": {}, **dict_variables})
             ser_res_data = self.get_serializer_class()({"formula": post_data.validated_data['formula'], "is_valid": True})
